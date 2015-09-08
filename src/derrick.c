@@ -20,6 +20,9 @@ int max_tcp_bytes = MAX_TCP_BYTES;
 int max_log_lines = MAX_LOG_LINES;
 dmode_t dmode = ENCODED;
 
+int truncate_payload_N; // add by syf
+char * write_file = NULL; // add by syf
+
 /* Local variables */
 static char *read_file = NULL;
 static char *device = NULL;
@@ -32,8 +35,8 @@ static char *pcap_filter = PCAP_FILTER;
 static void print_usage(void)
 {
     printf
-        ("Usage: derrick [-mvVh] [-i interface] [-r file] [-f expression] [-l file]\n"
-         "               [-b bytes] [-d mode] [-t lines]\n"
+        ("Usage: derrick [-mvVhn] [-i interface] [-r file] [-f expression] [-l file]\n"
+         "               [-b bytes] [-d mode] [-t lines] [-o file]\n"
          "Options:\n"
          "  -i: Network interface to listen on.\n"
          "  -r: Read packets from tcpdump file.\n"
@@ -44,7 +47,9 @@ static void print_usage(void)
          "  -d: Display mode: encoded, ascii or hex\n"
          "  -t: Maximum number of log lines for rotation. Default: %u\n"
          "  -v: Increase verbosity.\n" "  -V: Print version and copyright.\n"
-         "  -h: Print this help screen.\n", pcap_filter, max_tcp_bytes,
+         "  -h: Print this help screen.\n"
+	 "  -n: The number of bytes for every flow payload.\n"
+	 "  -o: The prefix of output file name.\n", pcap_filter, max_tcp_bytes,
          max_log_lines);
 }
 
@@ -53,9 +58,12 @@ static void print_usage(void)
  */
 static void print_version()
 {
+	printf("This program is based on the derrick.\n");
+	/*
     printf(".Oo DERRICK - A Simple Network Stream Recorder\n"
            "Copyright (C) 2011-2012 Konrad Rieck (konrad@mlsec.org)\n"
            "Derrick is licensed under the new BSD License.\n");
+	*/
 }
 
 /**
@@ -66,7 +74,7 @@ static void print_version()
 static void parse_options(int argc, char **argv)
 {
     int ch;
-    while ((ch = getopt(argc, argv, "mvVhd:t:l:b:i:r:f:")) != -1) {
+    while ((ch = getopt(argc, argv, "mvVhd:t:l:b:i:r:f:n:o:")) != -1) {
         switch (ch) {
         case 'd':
             if (!strcasecmp(optarg, "ascii")) {
@@ -75,7 +83,7 @@ static void parse_options(int argc, char **argv)
                 dmode = ENCODED;
             } else if (!strcasecmp(optarg, "hex")) {
                 dmode = HEX;
-            } else if (!strcasecmp(optarg, "bin")) {
+            } else if (!strcasecmp(optarg, "bin")) { // add by syf
                 dmode = BIN;
             } else {
                 warning("Unknown mode '%s'. Using 'encoded'.", optarg);
@@ -103,6 +111,10 @@ static void parse_options(int argc, char **argv)
         case 'l':
             log_file = optarg;
             break;
+	case 'n':   // add syf
+	    truncate_payload_N = atoi(optarg);
+	case 'o':   // add syf
+	    write_file = optarg;
         case 'v':
             verbose++;
             break;

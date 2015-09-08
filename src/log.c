@@ -12,7 +12,12 @@
 #include "net.h"
 #include "log.h"
 
+#define MAX_FILE_NAME_SIZE 128 
+
 extern int max_log_lines;
+extern int truncate_payload_N; // add by syf
+static int sample_seqno = 1; // add by syf
+extern char *write_file; // add by syf
 
 /* Global variables */
 static gzFile *gz = NULL;
@@ -49,14 +54,42 @@ void log_open(char *file)
 void log_write(double time, char *flags, struct tuple4 addr, char *buf,
                int len)
 {
-    if(len > 16){  // add by syf
-	len = 16;
+    if(len > truncate_payload_N){  // add by syf
+	len = truncate_payload_N;
     }
 
     char *p = payl_to_str(buf, len);
 
     if (!gz) {
-        printf("%.3f %s %s %s\n", time, flags, addr_to_str(addr), p);
+
+	char * file_path = (char *) malloc (sizeof(char) * MAX_FILE_NAME_SIZE);
+	memset(file_path, '\0', MAX_FILE_NAME_SIZE);
+	sprintf(file_path, "%s_%d.dat", write_file, sample_seqno);
+	FILE * fp = fopen(file_path, "wb");
+	if (!fp) {
+		perror("ERROR: Open file failure.\n");
+		if(file_path) {
+			free(file_path);
+			file_path = NULL;
+		}
+		return ;
+	}
+	if(len != fwrite(p, 1, len, fp)) {
+		perror("ERROR: Write file failure.\n");
+		if(file_path) {
+			free(file_path);
+			file_path = NULL;
+		}
+		return ;
+	}
+	fclose(fp);
+	if(file_path) {
+		free(file_path);
+		file_path = NULL;
+	}
+	sample_seqno++;
+
+        //printf("%.3f %s %s %s\n", time, flags, addr_to_str(addr), p);
     } else {
         gzprintf(gz, "%.3f %s %s %s\n", time, flags, addr_to_str(addr), p);
 
