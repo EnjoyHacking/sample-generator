@@ -17,6 +17,7 @@
 extern int verbose;
 extern int max_tcp_bytes;
 extern int merge_tcp_payloads;
+extern int direction_flag; // add by syf
 
 /**
  * Init the network monitoring
@@ -139,13 +140,17 @@ void net_tcp(struct tcp_stream *tcp, void **param)
         }
 
         /* Log merged payloads */
-        if (tcp->server.count)
+        if (tcp->server.count) {
+	    direction_flag = 0; // cs
             log_write(net_time(), "T", addr, tcp->server.data,
                       tcp->server.count);
+	}
         swap_addr(&addr);
-        if (tcp->client.count)
+        if (tcp->client.count) {
+	    direction_flag = 1; // sc 
             log_write(net_time(), "T", addr, tcp->client.data,
                       tcp->client.count);
+	}
         return;
     }
 }

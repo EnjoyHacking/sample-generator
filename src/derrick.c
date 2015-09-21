@@ -22,12 +22,16 @@ dmode_t dmode = ENCODED;
 
 int truncate_payload_N; // add by syf
 char * write_file = NULL; // add by syf
+char *cs_log_file  = NULL;	//add by syf
+char *sc_log_file = NULL;	//add by syf
+
 
 /* Local variables */
 static char *read_file = NULL;
 static char *device = NULL;
 static char *log_file = NULL;
 static char *pcap_filter = PCAP_FILTER;
+
 
 /**
  * Print usage of command line tool
@@ -49,7 +53,10 @@ static void print_usage(void)
          "  -v: Increase verbosity.\n" "  -V: Print version and copyright.\n"
          "  -h: Print this help screen.\n"
 	 "  -n: The number of bytes for every flow payload.\n"
-	 "  -o: The prefix of output file name.\n", pcap_filter, max_tcp_bytes,
+	 "  -o: The prefix of output file name.\n"
+	 "  -c: Write the flow payloads from client to server to the cs_log_file"
+	 "  -s: Write the flow payloads from server to client to the sc_log_file"
+	 , pcap_filter, max_tcp_bytes,
          max_log_lines);
 }
 
@@ -74,7 +81,7 @@ static void print_version()
 static void parse_options(int argc, char **argv)
 {
     int ch;
-    while ((ch = getopt(argc, argv, "mvVhd:t:l:b:i:r:f:n:o:")) != -1) {
+    while ((ch = getopt(argc, argv, "mvVhd:t:l:b:i:r:f:n:o:c:s:")) != -1) {
         switch (ch) {
         case 'd':
             if (!strcasecmp(optarg, "ascii")) {
@@ -113,8 +120,16 @@ static void parse_options(int argc, char **argv)
             break;
 	case 'n':   // add syf
 	    truncate_payload_N = atoi(optarg);
+	    break;
 	case 'o':   // add syf
 	    write_file = optarg;
+	    break;
+	case 'c':   // add syf
+	    cs_log_file = optarg;
+	    break;
+	case 's':   // add syf
+	    sc_log_file = optarg;
+	    break;
         case 'v':
             verbose++;
             break;
