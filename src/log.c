@@ -15,11 +15,12 @@
 #define MAX_FILE_NAME_SIZE 128 
 
 extern int max_log_lines;
-extern int truncate_payload_N; // add by syf
+extern int max_num_first_bytes_flow; // add by syf
+extern int max_num_first_bytes_pkt; // add by syf
 static int sample_seqno = 1; // add by syf
 static int cs_sample_seqno = 1; // add by syf
 static int sc_sample_seqno = 1; // add by syf
-int direction_flag = 2; // 0 denotes cs, 1 denotes sc, 2 denotes bd
+int direction_flag = 2; // 0 denotes cs, 1 denotes sc, 2 denotes bd/total
 extern char *write_file; // add by syf
 extern char *cs_log_file; // add by syf
 extern char *sc_log_file; // add by syf
@@ -60,8 +61,8 @@ void log_open(char *file)
 void log_write(double time, char *flags, struct tuple4 addr, char *buf,
                int len)
 {
-    if(len > truncate_payload_N){  // add by syf
-	len = truncate_payload_N;
+    if(len > max_num_first_bytes_flow){  // add by syf
+	len = max_num_first_bytes_flow;
     }
 
     char *p = payl_to_str(buf, len);

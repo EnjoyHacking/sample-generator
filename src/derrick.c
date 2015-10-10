@@ -20,11 +20,27 @@ int max_tcp_bytes = MAX_TCP_BYTES;
 int max_log_lines = MAX_LOG_LINES;
 dmode_t dmode = ENCODED;
 
-int truncate_payload_N; // add by syf
+
+/*Some configure paramters or thresholds by user */
 char * write_file = NULL; // add by syf
 char *cs_log_file  = NULL;	//add by syf
 char *sc_log_file = NULL;	//add by syf
 
+
+/* Some thresholds with default values can be set*/
+int max_num_first_bytes_flow = 64; // The maximum threshold of the number of bytes in payload for each direction flow
+int max_num_first_bytes_pkt = 64;  // The maximum threshold of the number of bytes in payload for each packet
+int max_num_first_pkts = 3;  // The maximum threshold of the number of packets for each dierction flow
+int max_num_samples = 1000;    // We only want to save the maximum of the samples (valid and writed samples), for tcp and udp
+int max_num_cs_samples = 500;    // Only for tcp flow
+int max_num_sc_samples = 500;    // Only for tcp flow
+
+
+/* Some statistic information by program, e.g., the number of flows/packets/bytes, etc.*/
+int num_total_tcp_connections; // Conuter the number of the tcp connections(sessions)
+int num_total_flows;  // Conuter the number of unidirectional flow (not bidirectional flow)
+int num_total_pkts;  // Counter the number of pkts(processed by program, not the true number of packets from pcap file) 
+ 
 
 /* Local variables */
 static char *read_file = NULL;
@@ -54,8 +70,8 @@ static void print_usage(void)
          "  -h: Print this help screen.\n"
 	 "  -n: The number of bytes for every flow payload.\n"
 	 "  -o: The prefix of output file name.\n"
-	 "  -c: Write the flow payloads from client to server to the cs_log_file"
-	 "  -s: Write the flow payloads from server to client to the sc_log_file"
+	 "  -c: Write the flow payloads from client to server to the cs_log_file\n"
+	 "  -s: Write the flow payloads from server to client to the sc_log_file\n"
 	 , pcap_filter, max_tcp_bytes,
          max_log_lines);
 }
@@ -81,7 +97,7 @@ static void print_version()
 static void parse_options(int argc, char **argv)
 {
     int ch;
-    while ((ch = getopt(argc, argv, "mvVhd:t:l:b:i:r:f:n:o:c:s:")) != -1) {
+    while ((ch = getopt(argc, argv, "mvVhd:t:l:b:i:r:f:n:N:M:o:c:s:C:S:B:")) != -1) {
         switch (ch) {
         case 'd':
             if (!strcasecmp(optarg, "ascii")) {
@@ -119,7 +135,13 @@ static void parse_options(int argc, char **argv)
             log_file = optarg;
             break;
 	case 'n':   // add syf
-	    truncate_payload_N = atoi(optarg);
+	    max_num_first_bytes_flow = atoi(optarg);
+	    break;
+	case 'N':   // add syf
+	    max_num_first_bytes_pkt = atoi(optarg);
+	    break;
+	case 'M':   // add syf
+	    max_num_first_pkts = atoi(optarg);
 	    break;
 	case 'o':   // add syf
 	    write_file = optarg;
@@ -129,6 +151,15 @@ static void parse_options(int argc, char **argv)
 	    break;
 	case 's':   // add syf
 	    sc_log_file = optarg;
+	    break;
+	case 'C':   // add syf
+	    max_num_cs_samples = atoi(optarg);
+	    break;
+	case 'S':   // add syf
+	    max_num_sc_samples = atoi(optarg);
+	    break;
+	case 'B':   // add syf
+	    max_num_samples = atoi(optarg);
 	    break;
         case 'v':
             verbose++;

@@ -17,7 +17,17 @@
 extern int verbose;
 extern int max_tcp_bytes;
 extern int merge_tcp_payloads;
+
 extern int direction_flag; // add by syf
+extern int max_num_samples;    
+extern int max_num_cs_samples;    
+extern int max_num_sc_samples;    
+
+
+int counter_num_cs_samples = 0;  // add by syf
+int counter_num_sc_samples = 0; // add by syf
+int counter_num_samples = 0; // add by syf
+
 
 /**
  * Init the network monitoring
@@ -144,12 +154,34 @@ void net_tcp(struct tcp_stream *tcp, void **param)
 	    direction_flag = 0; // cs
             log_write(net_time(), "T", addr, tcp->server.data,
                       tcp->server.count);
+            counter_num_cs_samples++;
+	    counter_num_samples++;
+
+	   /*
+	    if(counter_num_cs_samples == max_num_cs_samples) {
+	    	tcp->server.collect = 0;
+	    }
+	    */
+	}
+	if(counter_num_samples == max_num_samples) {
+		exit(1);
 	}
         swap_addr(&addr);
         if (tcp->client.count) {
 	    direction_flag = 1; // sc 
             log_write(net_time(), "T", addr, tcp->client.data,
                       tcp->client.count);
+            counter_num_sc_samples++;
+	    counter_num_samples++;
+		/*	
+	    if(counter_num_sc_samples == max_num_sc_samples) {
+	    	tcp->server.collect = 0;
+	    }
+	    */
+	}
+
+	if(counter_num_samples == max_num_samples) {
+		exit(1);
 	}
         return;
     }

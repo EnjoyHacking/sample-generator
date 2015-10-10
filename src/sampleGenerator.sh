@@ -21,7 +21,11 @@
 
 #./derrick -m -n $1 -r ~/PcapData/Pure/pure_http.pcap -d $2 -o ~/samples/http_samples/64/http_sample
 #./derrick -m -n $1 -r ~/PcapData/Pure/pure_http.pcap -d $2 -o ./http_sample  -l ./logfile.gz -t 10
-./derrick -m -n $1 -r ~/PcapData/Pure/pure_http.pcap -d $2 -c ./samples/http_samples/16/cs/http_sample_cs -s ./samples/http_samples/16/sc/http_sample_sc -o ./samples/http_samples/16/bd/http_sample_bd
 
+# Generate HTTP samples
+#./derrick -m -n $1 -r ~/PcapData/Pure/pure_http.pcap -d $2 -c ~/workspace_for_github/samples/http_samples/16/cs/http_sample_cs -s ~/workspace_for_github/samples/http_samples/16/sc/http_sample_sc -o ~/workspace_for_github/samples/http_samples/16/bd/http_sample_bd
+
+# Generate SMTP samples
+./derrick -m -n $1 -r ~/PcapData/smtp.pcap -d $2 -c ~/workspace_for_github/samples/smtp_samples/32/cs/smtp_sample_cs -s ~/workspace_for_github/samples/smtp_samples/32/sc/smtp_sample_sc -o ~/workspace_for_github/samples/smtp_samples/32/bd/smtp_sample_bd -B 600
 
 
